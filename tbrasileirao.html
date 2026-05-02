@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brasileirão</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #cccccc;
+        }
+
+        th {
+            background-color: #333333;
+            color: white;
+        }
+
+        .posicao {
+            width: 30px;
+        }
+
+        .time-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .escudo {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+        }
+
+        .nome-time {
+            text-align: left;
+        }
+
+        .libertadores td:first-child {
+            background-color: #4285f4;
+            color: white;
+        }
+
+        .prelibertadores td:first-child {
+            background-color: #fa7b17;
+            color: white;
+        }
+
+        .sulamericana td:first-child {
+            background-color: #34a853;
+            color: white;
+        }
+
+        .rebaixamento td:first-child {
+            background-color: #ea4335;
+            color: white;
+        }
+
+        button {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #2b8b44;
+        }
+
+        .legenda {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .item-legenda {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .cor-legenda {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+        .classificacao-container {
+    display: flex;
+    margin-top: 30px;
+    gap: 20px;
+}
+
+.classificacao-box {
+    flex: 1;
+    min-width: 300px;
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px black;
+}
+
+.classificacao-box h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid;
+    text-align: center;
+}
+
+.libertadores-box {
+    border-top: 4px solid #4285f4;
+}
+
+.libertadores-box h3 {
+    color: #4285f4;
+}
+
+.rebaixamento-box {
+    border-top: 4px solid #ea4335;
+}
+
+.rebaixamento-box h3 {
+    color: #ea4335;
+}
+
+.time-classificado {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    gap: 10px;
+    padding: 8px;
+}
+.meunome {
+    display: flex;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: #7B68EE;
+}
+    </style>
+</head>
+
+<body>
+    <h1>Tabela de Classificação</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Time</th>
+                <th>Pts</th>
+                <th>J</th>
+                <th>V</th>
+                <th>E</th>
+                <th>D</th>
+                <th>GP</th>
+                <th>GC</th>
+                <th>SG</th>
+            </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+    </table>
+
+    <div class="classificacao-container">
+        <div class="classificacao-box libertadores-box">
+            <h3>Classificados para Libertadores</h3>
+            <div id="libertadores-times"></div>
+        </div>
+        
+        <div class="classificacao-box rebaixamento-box">
+            <h3>Rebaixados</h3>
+            <div id="rebaixamento-times"></div>
+        </div>
+    </div>
+    <div class="legenda">
+        <div class="item-legenda">
+            <div class="cor-legenda" style="background-color: #4285f4;"></div>
+            <span>Libertadores</span>
+        </div>
+        <div class="item-legenda">
+            <div class="cor-legenda" style="background-color: #fa7b17;"></div>
+            <span>Qualificatórias</span>
+        </div>
+        <div class="item-legenda">
+            <div class="cor-legenda" style="background-color: #34a853;"></div>
+            <span>Sudamericana</span>
+        </div>
+        <div class="item-legenda">
+            <div class="cor-legenda" style="background-color: #ea4335;"></div>
+            <span>Rebaixamento</span>
+        </div>
+    </div>
+
+    <h2>Registrar Resultado</h2>
+    <form id="formulario">
+        <label>Time 1:</label>
+        <select id="time1" onchange="atualizarSelect()"></select>
+        <input type="number" id="gols1" min="0" required>
+        
+        <label>Time 2:</label>
+        <select id="time2"></select>
+        <input type="number" id="gols2" min="0" required>
+        
+        <button type="submit">Registrar</button>
+    </form>
+
+    <script>
+        const timesInfo = {
+            "Flamengo": {
+                escudo: "https://logodetimes.com/times/flamengo/logo-flamengo-256.png",
+                site: "https://www.flamengo.com.br/"
+            },
+            "Palmeiras": {
+                escudo: "https://logodetimes.com/times/palmeiras/logo-palmeiras-256.png",
+                site: "https://www.palmeiras.com.br/"
+            },
+            "Botafogo": {
+                escudo: "https://logodetimes.com/times/botafogo/logo-botafogo-256.png",
+                site: "https://www.botafogo.com.br/"
+            },
+            "Santos": {
+                escudo: "https://logodetimes.com/times/santos/logo-santos-256.png",
+                site: "https://www.santosfc.com.br/"
+            },
+            "Atlético-MG": {
+                escudo: "https://logodetimes.com/times/atletico-mineiro/logo-atletico-mineiro-256.png",
+                site: "https://atletico.com.br/"
+            },
+            "Sport": {
+                escudo: "https://logodetimes.com/times/sport-recife/logo-sport-recife-256.png",
+                site: "https://sportrecife.com.br/"
+            },
+            "Mirassol": {
+                escudo: "https://logodetimes.com/times/mirassol/logo-mirassol-256.png",
+                site: "https://mirassolfc.com.br/"
+            },
+            "Vasco": {
+                escudo: "https://logodetimes.com/times/vasco-da-gama/logo-vasco-da-gama-256.png",
+                site: "https://vasco.com.br/"
+            },
+            "Vitória": {
+                escudo: "https://logodetimes.com/times/vitoria/logo-vitoria-256.png",
+                site: "https://ecvitoria.com.br/"
+            },
+            "Grêmio": {
+                escudo: "https://logodetimes.com/times/gremio/logo-gremio-256.png",
+                site: "https://gremio.net/"
+            },
+            "Internacional": {
+                escudo: "https://logodetimes.com/times/internacional/logo-internacional-256.png",
+                site: "https://internacional.com.br/"
+            },
+            "Bragantino": {
+                escudo: "https://logodetimes.com/times/red-bull-bragantino/logo-red-bull-bragantino-256.png",
+                site: "https://redbullbragantino.com.br/"
+            },
+            "Juventude": {
+                escudo: "https://logodetimes.com/times/juventude/logo-juventude-256.png",
+                site: "https://juventude.com.br/"
+            },
+            "Bahia": {
+                escudo: "https://logodetimes.com/times/bahia/logo-bahia-256.png",
+                site: "https://esporteclubebahia.com.br/"
+            },
+            "Ceará": {
+                escudo: "https://logodetimes.com/times/ceara/logo-ceara-256.png",
+                site: "https://cearasc.com/"
+            },
+            "São Paulo": {
+                escudo: "https://logodetimes.com/times/sao-paulo/logo-sao-paulo-256.png",
+                site: "https://www.saopaulofc.net/"
+            },
+            "Fortaleza": {
+                escudo: "https://logodetimes.com/times/fortaleza/logo-fortaleza-256.png",
+                site: "https://fortalezaec.net/"
+            },
+            "Fluminense": {
+                escudo: "https://logodetimes.com/times/fluminense/logo-fluminense-256.png",
+                site: "https://www.fluminense.com.br/"
+            },
+            "Corinthians": {
+                escudo: "https://logodetimes.com/times/corinthians/logo-corinthians-256.png",
+                site: "https://www.corinthians.com.br/"
+            },
+            "Cruzeiro": {
+                escudo: "https://logodetimes.com/times/cruzeiro/logo-cruzeiro-256.png",
+                site: "https://www.cruzeiro.com.br/"
+            }
+        };
+
+        const times = Object.keys(timesInfo);
+        let tabela = {};
+
+        function inicializarTabela() {
+            times.forEach(time => {
+                tabela[time] = { pts: 0, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+            });
+            preencherSelects();
+            atualizarTabela();
+        }
+
+        function atualizarTabela() {
+    const tbody = document.getElementById("tabela");
+    tbody.innerHTML = "";
+
+    const ranking = Object.entries(tabela).sort((a, b) =>
+        b[1].pts - a[1].pts ||
+        (b[1].gp - b[1].gc) - (a[1].gp - a[1].gc) ||
+        b[1].gp - a[1].gp
+    );
+
+   
+    document.getElementById("libertadores-times").innerHTML = "";
+    document.getElementById("rebaixamento-times").innerHTML = "";
+
+    ranking.forEach(([time, stats], index) => {
+        let classe = "";
+        if (index < 4) classe = "libertadores";
+        else if (index < 6) classe = "prelibertadores";
+        else if (index < 12) classe = "sulamericana";
+        else if (index >= 16) classe = "rebaixamento";
+
+        const row = document.createElement("tr");
+        if (classe) row.classList.add(classe);
+        
+        const posicao = (index + 1) + (index + 1 == 1 ? "º" : "º");
+        
+        row.innerHTML = `
+            <td class="posicao">${posicao}</td>
+            <td class="nome-time">
+                <div class="time-cell">
+                    <img src="${timesInfo[time].escudo}" alt="${time}" class="escudo">
+                    <a href="${timesInfo[time].site}" target="_blank">${time}</a>
+                </div>
+            </td>
+            <td>${stats.pts}</td>
+            <td>${stats.j}</td>
+            <td>${stats.v}</td>
+            <td>${stats.e}</td>
+            <td>${stats.d}</td>
+            <td>${stats.gp}</td>
+            <td>${stats.gc}</td>
+            <td>${stats.gp - stats.gc}</td>
+        `;
+        tbody.appendChild(row);
+
+        
+        if (index < 4) {
+            const div = document.createElement("div");
+            div.className = "time-classificado";
+            div.innerHTML = `
+                <span class="posicao-libertadores">${posicao}</span>
+                <img src="${timesInfo[time].escudo}" alt="${time}" class="escudo" width="24">
+                <a href="${timesInfo[time].site}" target="_blank">${time}</a>
+            `;
+            document.getElementById("libertadores-times").appendChild(div);
+        } 
+        else if (index >= 16) {
+            const div = document.createElement("div");
+            div.className = "time-classificado";
+            div.innerHTML = `
+                <span class="posicao-rebaixamento">${posicao}</span>
+                <img src="${timesInfo[time].escudo}" alt="${time}" class="escudo" width="24">
+                <a href="${timesInfo[time].site}" target="_blank">${time}</a>
+            `;
+            document.getElementById("rebaixamento-times").appendChild(div);
+        }
+    });
+}
+
+        function preencherSelects() {
+            const select1 = document.getElementById("time1");
+            const select2 = document.getElementById("time2");
+
+            select1.innerHTML = "";
+            select2.innerHTML = "";
+
+            times.forEach(time => {
+                select1.innerHTML += `<option value="${time}">${time}</option>`;
+                select2.innerHTML += `<option value="${time}">${time}</option>`;
+            });
+
+            atualizarSelect();
+        }
+
+        function atualizarSelect() {
+            const select1 = document.getElementById("time1");
+            const select2 = document.getElementById("time2");
+
+            select2.innerHTML = "";
+
+            times.forEach(time => {
+                if (time !== select1.value) {
+                    select2.innerHTML += `<option value="${time}">${time}</option>`;
+                }
+            });
+        }
+
+        document.getElementById("formulario").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const time1 = document.getElementById("time1").value;
+            const time2 = document.getElementById("time2").value;
+            const gols1 = parseInt(document.getElementById("gols1").value);
+            const gols2 = parseInt(document.getElementById("gols2").value);
+
+            tabela[time1].j++;
+            tabela[time2].j++;
+            tabela[time1].gp += gols1;
+            tabela[time1].gc += gols2;
+            tabela[time2].gp += gols2;
+            tabela[time2].gc += gols1;
+
+            if (gols1 > gols2) {
+                tabela[time1].v++;
+                tabela[time1].pts += 3;
+                tabela[time2].d++;
+            } else if (gols1 < gols2) {
+                tabela[time2].v++;
+                tabela[time2].pts += 3;
+                tabela[time1].d++;
+            } else {
+                tabela[time1].e++;
+                tabela[time2].e++;
+                tabela[time1].pts++;
+                tabela[time2].pts++;
+            }
+
+            atualizarTabela();
+        });
+
+        window.onload = inicializarTabela;
+    </script>
+</body>
+<footer><h2 class="meunome">Maria Giulia Lins de Lucena</h2></footer>
+</html>
